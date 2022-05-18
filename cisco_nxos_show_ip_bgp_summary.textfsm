@@ -1,0 +1,28 @@
+Value Filldown vrf (\S+)
+Value Filldown router_id (\d+?\.\d+?\.\d+?\.\d+?)
+Value Filldown local_as (\d+)
+Value Required neighbor_ip (\d+?\.\d+?\.\d+?\.\d+?)
+Value bgp_ver (\d)
+Value Required RemoteAS (\S+)
+Value msg_rcvd (\d+)
+Value msg_sent (\d+)
+Value table_ver (\d+)
+Value in_queue (\d+)
+Value out_queue (\d+)
+Value up_down (\S+)
+Value state_pfxrcvd (\S+?\s+\S+?|\S+?)
+
+Start
+  # Match BGP vrf
+  ^BGP summary information for vrf ${vrf}, address family IPv4 Unicast
+  # Match RID and Local AS
+  ^BGP router identifier ${router_id}, local AS number ${local_as}
+  # Match Neighbor lines
+  ^${neighbor_ip}\s+${bgp_ver}\s+${RemoteAS}.* -> Continue
+  ^\s+${msg_rcvd}\s+${msg_sent}\s+${table_ver}\s+${in_queue}\s+${out_queue}\s+${up_down}\s+${state_pfxrcvd}\s*$$ -> Record
+  ^${neighbor_ip}\s+${bgp_ver}\s+${RemoteAS}\s+${msg_rcvd}\s+${msg_sent}\s+${table_ver}\s+${in_queue}\s+${out_queue}\s+${up_down}\s+${state_pfxrcvd}\s*$$ -> Record
+  # Match lines that are spaces
+  ^\s+$$
+
+Done
+  ^.*

@@ -1,0 +1,11 @@
+Value neighbor (\S+)
+Value local_interface (\S+)
+Value neighbor_interface (\S+)
+
+Start
+  ^Device.*ID -> LLDP
+
+LLDP
+  ^${neighbor}$$
+  ^${neighbor}\s+${local_interface}\s+\d+\s+(\w+?\s)+\s+${neighbor_interface} -> Record
+  ^\s+${local_interface}\s+\d+\s+(\w+?\s)+\s+${neighbor_interface} -> Record

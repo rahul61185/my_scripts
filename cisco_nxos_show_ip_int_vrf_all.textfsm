@@ -1,0 +1,13 @@
+Value Filldown vrf (\S+)
+Value Required intf (\S+)
+Value Required ip_addr ([a-zA-Z0-9./]+)
+Value status (\S+-\S+)
+Value link (\S+-\S+)
+Value protocol (\S+-\S+)
+
+Start
+  ^IP\s+Interface\s+Status\s+for\s+VRF\s+"${vrf}"\(\d+\)
+  ^Interface\s+IP\s+Address\s+Interface\s+Status
+  ^${intf}\s+${ip_addr}\s+${protocol}/${link}/${status} -> Record
+  ^\s*$$
+  ^.*$$ -> Error

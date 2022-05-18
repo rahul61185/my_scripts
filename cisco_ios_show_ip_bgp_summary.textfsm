@@ -1,0 +1,12 @@
+Value Filldown RouterID (\S+)
+Value Filldown LocalAS (\d+)
+Value RemoteAS ((\d+(\.\d{1,3}))|(\d+))
+Value Required RemoteIP (\d+(\.\d+){3})
+Value Uptime (\d+\S+)
+Value Status (\D.*)
+
+Start
+  ^BGP router identifier ${RouterID}, local AS number ${LocalAS}
+  ^${RemoteIP}\s+\d+\s+${RemoteAS}(\s+\S+){5}\s+${Uptime}\s+${Status} -> Record
+
+EOF

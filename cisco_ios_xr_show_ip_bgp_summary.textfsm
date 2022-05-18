@@ -1,0 +1,12 @@
+Value Filldown RouterID (\S+)
+Value Filldown LocalAS (\d+)
+Value RemoteAS ((\d+(\.\d{1,3}))|(\d+))
+Value Required RemoteIP (\d+(\.\d+){3})
+Value Uptime (\d+\S+)
+Value Status (\D.*)
+
+Start
+  ^Neighbor\s+Spk\s+Spk\s+AS\s+MsgRcvd\s+MsgSent\s+TblVer\s+InQ\s+OutQ\s+Up/Down\s+St/PfxRcd
+  ^${RemoteIP}\s+\d+\s+${RemoteAS}(\s+\S+){5}\s+${Uptime}\s+${Status} -> Record
+
+EOF
