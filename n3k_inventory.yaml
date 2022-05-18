@@ -1,0 +1,8 @@
+region:
+  # - name: "ap-sa-2"
+  #   host:
+  #     - "x.x.x.x"
+  #     - "x.x.x.x"
+  #   type: cisco_nxos
+  #   prefix:
+  #     - "x.x.x.x"
