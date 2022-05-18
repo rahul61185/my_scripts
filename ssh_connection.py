@@ -15,9 +15,8 @@ def basic_ssh_lab(host,acl_line):
     ssh.enable()
     cli = ['ip access-list ACL_SNMP_VTY',
     acl_line,
-    'resequence ip access-list ACL_SNMP_VTY 10 10',
-    'snmp-server user cc-snmpcollector network-operator auth sha P798bGPotgv3KDK priv aes-128 tCsdUC9kkVSEaAU',
-    'snmp-server user cc-snmpcollector use-ipv4acl ACL_SNMP_VTY',
+    'snmp-server user xxxxxxx network-operator auth sha xxxxxxxxx priv aes-128 xxxxxx',
+    'snmp-server user xxxxx use-ipv4acl ACL_NAME',
     'copy run start'
     ]
     output = ssh.send_config_set(cli)

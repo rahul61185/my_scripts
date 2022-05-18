@@ -13,10 +13,10 @@ def add_acl_vty(host):
     host_prompt = ssh.find_prompt()
     print('connected to host ', host_prompt)
     ssh.enable()
-    acl_line = '147.204.224.0/22'
+    acl_line = 'xx.xx.xx.xx/22'
     cli = ['ip access-list ACL_SNMP_VTY',
-    '5 permit ip 147.204.224.0/22 any',
-    'resequence ip access-list ACL_SNMP_VTY 10 10',
+    '5 permit ip xx.xx.xx.0/22 any',
+    'resequence ip access-list ACL_NAme 10 10',
     'copy run start'
     ]
     output = ssh.send_config_set(cli)

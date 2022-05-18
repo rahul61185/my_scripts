@@ -13,9 +13,9 @@ def basic_ssh_lab(host):
     host_prompt = ssh.find_prompt()
     print('connected to host ', host_prompt)
     ssh.enable()
-    cli = 'show ip access-list ACL_SNMP_VTY'
+    cli = 'show ip access-list ACL_name'
     output = ssh.send_command(cli)
-    acl = "10.46.0.0"
+    acl = "x.x.x.x"
     if acl in output:
         print('ACL_SNMP_VTY has correct IPs')
     else:
