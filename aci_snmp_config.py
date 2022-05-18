@@ -12,7 +12,7 @@ from yaml import dump, safe_load
 urllib3.disable_warnings()
 
 
-username = 'apic#Netsec_TACACS\\'+ input("Please provide username only:")
+username = input("Please provide username only:")
 password = getpass.getpass(prompt='Please provide your radius password:')
 
 def login_to_apic(apic):
