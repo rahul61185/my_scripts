@@ -1,0 +1,388 @@
+- name: Nodes addition in Fabric Membership
+  block:
+  #Adding new node in fabric mebership
+    - name: Adding Leaf_1 in Fabric Membership
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: /api/node/mo/uni.json
+        method: post
+        content:
+          fabricNodeIdentP:
+            attributes:
+              dn: "uni/controller/nodeidentpol/nodep-{{ leaf1.serial }}"
+              serial: "{{ leaf1.serial }}"
+              nodeId: "{{ leaf1.node_id }}"
+              name: "{{ leaf1.hostname }}"
+              role: leaf
+              rn: "nodep-{{ leaf1.serial }}"
+              status: created,modified
+
+    - name: Adding Leaf_2 in Fabric Membership
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: /api/node/mo/uni.json
+        method: post
+        content:
+          fabricNodeIdentP:
+            attributes:
+              dn: "uni/controller/nodeidentpol/nodep-{{ leaf2.serial }}"
+              serial: "{{ leaf2.serial }}"
+              nodeId: "{{ leaf2.node_id }}"
+              name: "{{ leaf2.hostname }}"
+              role: leaf
+              rn: "nodep-{{ leaf2.serial }}"
+              status: created,modified
+  rescue:
+    - name: Print when errors
+      ansible.builtin.debug:
+        msg: 'I caught an error. Skipping...'
+
+- name: Adding new nodes into VPC
+  block:
+#Adding new nodes into VPC
+    - name: Creating VPC domain for new nodes
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: /api/node/mo/uni/fabric/protpol.json
+        method: post
+        content:
+          fabricProtPol:
+            attributes:
+              dn: uni/fabric/protpol
+              name: default
+              pairT: explicit
+            children:
+              - fabricExplicitGEp:
+                  attributes:
+                    id: "{{ vpc.protection_group_id }}"
+                    name: "{{ vpc.protection_group }}"
+                  children:
+                  - fabricNodePEp:
+                      attributes:
+                        id: "{{ leaf1.node_id }}"
+                        podId: "{{ pod | int }}"
+                  - fabricNodePEp:
+                      attributes:
+                        id: "{{ leaf2.node_id }}"
+                        podId: "{{ pod | int }}"
+                  - fabricRsVpcInstPol:
+                      attributes:
+                        tnVpcInstPolName: default            
+  rescue:
+    - name: Print when errors
+      ansible.builtin.debug:
+        msg: 'I caught an error. Skipping...'
+
+#Adding Nodes into Supress_VPC_Alarm policy 
+- name: Adding Nodes into Supress_VPC_Alarm policy 
+  block:            
+#Adding Nodes into Supress_VPC_Alarm policy 
+    - name: Adding nodes into Supress_VPC_Alarm policy
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: api/node/mo/uni/fabric.json
+        method: post
+        content:
+          fabricLeafP:
+            attributes:
+              dn: uni/fabric/leprof-Supress_VPC_Alarm
+              name: Supress_VPC_Alarm
+            children:
+              - fabricLeafS:
+                  attributes:
+                    name: "Leaf_{{ leaf1.node_id }}"
+                    type: range
+                  children:
+                    - fabricNodeBlk:
+                        attributes:
+                          from_: "{{ leaf1.node_id }}"
+                          name: "Leafid_{{ leaf1.node_id }}"
+                          to_: "{{ leaf1.node_id }}"
+                    - fabricRsLeNodePGrp:
+                        attributes:
+                          tDn: uni/fabric/funcprof/lenodepgrp-Supress_VPC_Alarm
+              - fabricLeafS:
+                  attributes:
+                    name: "Leaf_{{ leaf2.node_id }}"
+                    type: range
+                  children:
+                    - fabricNodeBlk:
+                        attributes:
+                          from_: "{{ leaf2.node_id }}"
+                          name: "Leafid_{{ leaf2.node_id }}"
+                          to_: "{{ leaf2.node_id }}"
+                    - fabricRsLeNodePGrp:
+                        attributes:
+                          tDn: uni/fabric/funcprof/lenodepgrp-Supress_VPC_Alarm
+  rescue:
+    - name: Print when errors
+      ansible.builtin.debug:
+        msg: 'I caught an error. Skipping...'
+
+#Creating Profile to Leaf switch Node_1
+- name: Adding Nodes into Supress_VPC_Alarm policy 
+  block:
+    - name:  Creating Profile to Leaf switch Node_1
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: api/node/mo/uni/infra.json
+        method: post
+        content:
+          infraNodeP:
+            attributes:
+              dn: "uni/infra/nprof-Leaf{{ leaf1.node_id }}_{{ bb_name }}"
+              name: "Leaf{{ leaf1.node_id }}_{{ bb_name }}"
+            children:
+            - infraLeafS:
+                attributes:
+                  name: "{{ leaf1.hostname }}"
+                  type: range
+                children:
+                - infraNodeBlk:
+                    attributes: 
+                      from_: "{{ leaf1.node_id }}"
+                      name: "_n{{ leaf1.node_id }}_{{ bb_name }}"
+                      to_: "{{ leaf1.node_id }}"
+            - infraRsAccPortP:
+                attributes:
+                  tDn: "uni/infra/accportprof-{{ bb_name }}_{{ leaf1.node_id }}"
+            - infraRsAccPortP:
+                attributes:
+                  tDn: "uni/infra/accportprof-{{ bb_name }}_VPC_Profile"
+            - infraRsAccPortP:
+                attributes:
+                  tDn: "uni/infra/accportprof-{{ bb_name }}_NONVPC_LAG_Profile"
+
+#Creating Profile to Leaf switch Node_2
+    - name: Creating Profile to Leaf switch Node_2
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: api/node/mo/uni/infra.json
+        method: post
+        content:
+          infraNodeP:
+            attributes:
+              dn: "uni/infra/nprof-Leaf{{ leaf2.node_id }}_{{ bb_name }}"
+              name: "Leaf{{ leaf2.node_id }}_{{ bb_name }}"
+            children:
+            - infraLeafS:
+                attributes:
+                  name: "{{ leaf2.hostname }}"
+                  type: range
+                children:
+                - infraNodeBlk:
+                    attributes: 
+                      from_: "{{ leaf2.node_id }}"
+                      name: "_n{{ leaf2.node_id }}_{{ bb_name }}"
+                      to_: "{{ leaf2.node_id }}"
+            - infraRsAccPortP:
+                attributes:
+                  tDn: "uni/infra/accportprof-{{ bb_name }}_{{ leaf2.node_id }}"
+            - infraRsAccPortP:
+                attributes:
+                  tDn: "uni/infra/accportprof-{{ bb_name }}_VPC_Profile"
+            - infraRsAccPortP:
+                attributes:
+                  tDn: "uni/infra/accportprof-{{ bb_name }}_NONVPC_LAG_Profile"
+  rescue:
+    - name: Print when errors
+      ansible.builtin.debug:
+        msg: 'I caught an error. Skipping...'
+
+- name: Setting OOB_IP
+  block:
+#Setting OOB_IP on leaf_1
+    - name: Setting OOB IP on Leaf_1
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: /api/node/mo/uni/tn-mgmt/mgmtp-default/oob-default.json
+        method: post
+        content:
+          mgmtOoB:
+            attributes:
+              dn: uni/tn-mgmt/mgmtp-default/oob-default
+              status: created,modified
+            children:
+              - mgmtRsOoBStNode:
+                  attributes:
+                    tDn: topology/pod-{{ pod }}/node-{{ leaf1.node_id }}
+                    addr: "{{ leaf1.mgmt_ip }}"
+                    gw: "{{ leaf1.mgmt_gw }}"
+                    status: created,modified
+
+#Setting OOB_IP on leaf_2
+
+    - name: Setting OOB IP on Leaf_2
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: /api/node/mo/uni/tn-mgmt/mgmtp-default/oob-default.json
+        method: post
+        content:
+          mgmtOoB:
+            attributes:
+              dn: uni/tn-mgmt/mgmtp-default/oob-default
+              status: created,modified
+            children:
+              - mgmtRsOoBStNode:
+                  attributes:
+                    tDn: topology/pod-{{ pod }}/node-{{ leaf2.node_id }}
+                    addr: "{{ leaf2.mgmt_ip }}"
+                    gw: "{{ leaf2.mgmt_gw }}"
+                    status: created,modified
+  rescue:
+    - name: Print when errors
+      ansible.builtin.debug:
+        msg: 'I caught an error. Skipping...'
+
+#Setting Geo Location
+- name: Setting Geo Location Node_1
+  block:
+
+#Setting Geo Location of Leaf Nodes_1                  
+    - name: Setting Geoloaction of Leaf_1
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: /api/node/mo/uni/fabric.json
+        method: post
+        content:
+          geoSite:
+            attributes:
+              dn: "uni/fabric/site-{{ leaf1.location.site }}"
+              name: "{{ leaf1.location.site }}"
+              rn: "site-{{ leaf1.location.site }}"
+              status: created,modified
+            children:
+              - geoBuilding:
+                  attributes:
+                    dn: uni/fabric/site-{{ leaf1.location.site }}/building-{{ leaf1.location.building }}
+                    name: "{{ leaf1.location.building }}"
+                    rn: "building-{{ leaf1.location.building }}"
+                    status: created,modified
+                  children:
+                    - geoFloor:
+                        attributes:
+                          dn: uni/fabric/site-{{ leaf1.location.site }}/building-{{ leaf1.location.building }}/floor-{{ leaf1.location.floor }}
+                          name: "{{ leaf1.location.floor }}"
+                          rn: "floor-{{ leaf1.location.floor }}"
+                          status: created,modified
+                        children:
+                          - geoRoom:
+                              attributes:
+                                dn: uni/fabric/site-{{ leaf1.location.site }}/building-{{ leaf1.location.building }}/floor-{{ leaf1.location.floor }}/room-{{ leaf1.location.room }}
+                                name: "{{ leaf1.location.room }}"
+                                rn: "room-{{ leaf1.location.room }}"
+                                status: created,modified
+                              children:
+                                - geoRow:
+                                    attributes:
+                                      dn: uni/fabric/site-{{ leaf1.location.site }}/building-{{ leaf1.location.building }}/floor-{{ leaf1.location.floor }}/room-{{ leaf1.location.room }}/row-{{ leaf1.location.row }}
+                                      name: "{{ leaf1.location.row }}"
+                                      rn: "row-{{ leaf1.location.row }}"
+                                      status: created,modified
+                                    children:
+                                      - geoRack:
+                                          attributes:
+                                            dn: "uni/fabric/site-{{ leaf1.location.site }}/building-{{ leaf1.location.building }}/floor-{{ leaf1.location.floor }}/room-{{ leaf1.location.room }}/row-{{ leaf1.location.row }}/rack-{{ leaf1.location.rack }}"
+                                            name: "{{ leaf1.location.rack }}"
+                                            rn: "rack-{{ leaf1.location.rack }}"
+                                            status: created,modified
+                                          children:
+                                            - geoRsNodeLocation:
+                                                attributes:
+                                                  tDn: "topology/pod-{{ pod }}/node-{{ leaf1.node_id }}"
+                                                  status: created,modified
+  rescue:
+    - name: Print when errors
+      ansible.builtin.debug:
+        msg: 'I caught an error. Skipping...'
+
+#Setting Geo Location of Leaf Nodes_2                    
+- name: Setting Geo Location Node_2
+  block:
+
+    - name: Setting Geoloaction of Leaf_2
+      aci_rest:
+        host: "{{ ansible_host }}"
+        username: "{{ aci_username }}"
+        password: "{{ ansible_password }}"
+        validate_certs: no
+        path: /api/node/mo/uni/fabric.json
+        method: post
+        content:
+          geoSite:
+            attributes:
+              dn: "uni/fabric/site-{{ leaf2.location.site }}"
+              name: "{{ leaf2.location.site }}"
+              rn: "site-{{ leaf2.location.site }}"
+              status: created,modified
+            children:
+              - geoBuilding:
+                  attributes:
+                    dn: uni/fabric/site-{{ leaf2.location.site }}/building-{{ leaf2.location.building }}
+                    name: "{{ leaf2.location.building }}"
+                    rn: "building-{{ leaf2.location.building }}"
+                    status: created,modified
+                  children:
+                    - geoFloor:
+                        attributes:
+                          dn: uni/fabric/site-{{ leaf2.location.site }}/building-{{ leaf2.location.building }}/floor-{{ leaf2.location.floor }}
+                          name: "{{ leaf2.location.floor }}"
+                          rn: "floor-{{ leaf2.location.floor }}"
+                          status: created,modified
+                        children:
+                          - geoRoom:
+                              attributes:
+                                dn: uni/fabric/site-{{ leaf2.location.site }}/building-{{ leaf2.location.building }}/floor-{{ leaf2.location.floor }}/room-{{ leaf2.location.room }}
+                                name: "{{ leaf2.location.room }}"
+                                rn: "room-{{ leaf2.location.room }}"
+                                status: created,modified
+                              children:
+                                - geoRow:
+                                    attributes:
+                                      dn: uni/fabric/site-{{ leaf2.location.site }}/building-{{ leaf2.location.building }}/floor-{{ leaf2.location.floor }}/room-{{ leaf2.location.room }}/row-{{ leaf2.location.row }}
+                                      name: "{{ leaf2.location.row }}"
+                                      rn: "row-{{ leaf2.location.row }}"
+                                      status: created,modified
+                                    children:
+                                      - geoRack:
+                                          attributes:
+                                            dn: "uni/fabric/site-{{ leaf2.location.site }}/building-{{ leaf2.location.building }}/floor-{{ leaf2.location.floor }}/room-{{ leaf2.location.room }}/row-{{ leaf2.location.row }}/rack-{{ leaf2.location.rack }}"
+                                            name: "{{ leaf2.location.rack }}"
+                                            rn: "rack-{{ leaf2.location.rack }}"
+                                            status: created,modified
+                                          children:
+                                            - geoRsNodeLocation:
+                                                attributes:
+                                                  tDn: "topology/pod-{{ pod }}/node-{{ leaf2.node_id }}"
+                                                  status: created,modified
+  rescue:
+    - name: Print when errors
+      ansible.builtin.debug:
+        msg: 'I caught an error. Skipping...'

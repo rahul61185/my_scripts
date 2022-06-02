@@ -1,0 +1,60 @@
+---
+- name: ACI Port Activation Playbook
+  hosts: 'all'
+  gather_facts: no
+  connection: local
+
+  roles:
+  # load initial variables
+    - roles/init_vars
+    - roles/init_folders
+
+  vars:
+    aci_login: &aci_login
+      host: "{{ ansible_host }}"
+      username: "{{ aci_username }}"
+      password: "{{ ansible_password }}"
+      validate_certs: no
+
+  vars_prompt:
+    - name: platform
+      prompt: "Please provide platform of new node"
+      private: no
+    - name: bb_name
+      prompt: "Please provide bb_name of new node"
+      private: no
+
+#Task Section for Building Block Activation for new BB
+  tasks:
+
+#Creating a config snapshot for whole fabric 
+    - name: Take ACI fabric snapshot
+      include_tasks: task_fabric_snapshot.yaml
+      vars:
+        snapshot_descr: "{{ bb_name }} activation"  
+
+#Loading required BB file 
+    - name: Loading BB file configuration for {{ bb_name }}
+      include_vars:
+        file: "{{ ard }}vars/aci/host_vars/{{ region }}/fabric/building_blocks/{{ platform }}/{{ bb_name }}.yaml"
+
+#Activating Leaf configuration and policy
+    - name: Building Block Leaf profile activation
+      block:
+        - name: BB Leaf activation and configuration
+          include_tasks: task_bb_activation.yaml
+
+      rescue:
+        - name: Print when errors
+          ansible.builtin.debug:
+            msg: 'I caught an error. Skipping...'
+
+#Creating a BB interface policy and profile 
+    - name: Building Block interface policy and profile configuration
+      block:
+        - name: BB interface policy and profile
+          include_tasks: task_interface_policy_and_profile.yaml
+      rescue:
+        - name: Print when errors
+          ansible.builtin.debug:
+            msg: 'I caught an error. Skipping...'
