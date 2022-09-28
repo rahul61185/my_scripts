@@ -1,0 +1,17 @@
+platform:
+
+#Cisco IOS Section, including (IOS-XE and CatOS)
+  - name: cisco_ios
+    devices:
+      - hostname: 
+        ip: 
+      - hostname: 
+        ip: 
+#NXOS Section
+
+  - name: cisco_nxos
+    devices:
+      - hostname: 
+        ip: 
+      - hostname: 
+        ip:
