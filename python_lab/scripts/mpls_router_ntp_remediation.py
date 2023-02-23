@@ -23,7 +23,7 @@ failed='failed_host_'+time+'.csv'
 
 #script Section
 print('Start time: ', start_time)
-def config_snmp(host_ip):
+def def_config_set(host_ip):
     connection = ConnectHandler(
                 device_type='cisco_ios',
                 host=host_ip,
@@ -41,16 +41,19 @@ def config_snmp(host_ip):
     if host_promt:
         print('\n <<SUCCESS>> Connected to host', host_ip)
     connection.enable()
-    cli = ['ip access-list standard ' + acl_name,
-            'permit 10.129.200.0 0.0.0.255',
-            'ip access-list resequence  '+ acl_name + ' 10  10 ',
-            'snmp-server host 10.129.200.53 version 3 auth 8$henb97o',
+    cli = ['ip access-list extended ALLOW_NTP',
+            '10 permit udp host 10.224.0.1 eq ntp any',
+            '20 permit udp host 10.190.0.1 eq ntp any',
+            '30 permit udp any host 10.224.0.1 eq ntp',
+            '40 permit udp any host 10.190.0.1 eq ntp',
+            '50 deny ip any any',
+            'ntp access-group peer ALLOW_NTP',
             'do write']
 
     # cli = [acl, resequence, snmp_host, 'copy run start', verify]
     output = connection.send_config_set(cli)
     # ConnectHandler.config(cli)
-    connection.disconnect()
+
     if output:
         if 'invalid' in output:
             print('Command Error...Please verify the command')
@@ -61,6 +64,7 @@ def config_snmp(host_ip):
         with open(missing_config, "a") as missing:
             missing.write(host_ip+','+ host_promt+ '\n')
 
+    connection.disconnect()
 
 if __name__ == "__main__":
     max_threads = 50
@@ -72,11 +76,11 @@ if __name__ == "__main__":
             host_len=int(len(host_file))
             for x in range(0, host_len):
                 host_ip=host_file[x]['host_ip']
-                acl_name = str(host_file[x]['acl_name'])
+                # acl_name = str(host_file[x]['acl_name'])
                 try:
                     print('\nCONNECTING TO HOST',x+1,'of',host_len,'; IP: ',host_ip)
                     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                        executor.map(config_snmp(host_ip), host_ip)
+                        executor.map(def_config_set(host_ip), host_ip)
                 except:
                     print("I caught an error for host", host_ip)
                     with open(failed, "a") as logs:

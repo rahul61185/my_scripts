@@ -23,7 +23,7 @@ failed='failed_host_'+time+'.csv'
 
 #script Section
 print('Start time: ', start_time)
-def config_snmp(host_ip):
+def def_config_set(host_ip):
     connection = ConnectHandler(
                 device_type='cisco_ios',
                 host=host_ip,
@@ -41,16 +41,18 @@ def config_snmp(host_ip):
     if host_promt:
         print('\n <<SUCCESS>> Connected to host', host_ip)
     connection.enable()
-    cli = ['ip access-list standard ' + acl_name,
-            'permit 10.129.200.0 0.0.0.255',
-            'ip access-list resequence  '+ acl_name + ' 10  10 ',
-            'snmp-server host 10.129.200.53 version 3 auth 8$henb97o',
+    cli = ['line vty 0 15',
+            'access-class MGMT in',
+            'login authentication SECURE',
+            'transport input ssh',
+            'transport output none',
+            'no line vty 16',
             'do write']
 
     # cli = [acl, resequence, snmp_host, 'copy run start', verify]
     output = connection.send_config_set(cli)
     # ConnectHandler.config(cli)
-    connection.disconnect()
+
     if output:
         if 'invalid' in output:
             print('Command Error...Please verify the command')
@@ -61,27 +63,27 @@ def config_snmp(host_ip):
         with open(missing_config, "a") as missing:
             missing.write(host_ip+','+ host_promt+ '\n')
 
+    connection.disconnect()
 
-if __name__ == "__main__":
-    max_threads = 50
-    threads = []
+# if __name__ == "__main__":
+#     max_threads = 50
+#     threads = []
 
-    if inventory:
-        with open(inventory, "r") as inv:
-            host_file = safe_load(inv)
-            host_len=int(len(host_file))
-            for x in range(0, host_len):
-                host_ip=host_file[x]['host_ip']
-                acl_name = str(host_file[x]['acl_name'])
-                try:
-                    print('\nCONNECTING TO HOST',x+1,'of',host_len,'; IP: ',host_ip)
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                        executor.map(config_snmp(host_ip), host_ip)
-                except:
-                    print("I caught an error for host", host_ip)
-                    with open(failed, "a") as logs:
-                        logs.write(host_ip +  '\n')
-                        logs.close
+if inventory:
+    with open(inventory, "r") as inv:
+        host_file = safe_load(inv)
+        host_len=int(len(host_file))
+        for x in range(0, host_len):
+            host_ip=host_file[x]['host_ip']
+            # acl_name = str(host_file[x]['acl_name'])
+            try:
+                print('\nCONNECTING TO HOST',x+1,'of',host_len,'; IP: ',host_ip)
+                def_config_set(host_ip)
+            except:
+                print("I caught an error for host", host_ip)
+                with open(failed, "a") as logs:
+                    logs.write(host_ip +  '\n')
+                    logs.close
 
     # for thread in threads:
     #     thread.join()

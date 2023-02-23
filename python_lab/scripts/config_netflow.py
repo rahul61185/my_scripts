@@ -41,10 +41,8 @@ def config_snmp(host_ip):
     if host_promt:
         print('\n <<SUCCESS>> Connected to host', host_ip)
     connection.enable()
-    cli = ['ip access-list standard ' + acl_name,
-            'permit 10.129.200.0 0.0.0.255',
-            'ip access-list resequence  '+ acl_name + ' 10  10 ',
-            'snmp-server host 10.129.200.53 version 3 auth 8$henb97o',
+    cli = ['flow exporter ' + exporter_name,
+            'destination 10.129.200.53',
             'do write']
 
     # cli = [acl, resequence, snmp_host, 'copy run start', verify]
@@ -72,7 +70,7 @@ if __name__ == "__main__":
             host_len=int(len(host_file))
             for x in range(0, host_len):
                 host_ip=host_file[x]['host_ip']
-                acl_name = str(host_file[x]['acl_name'])
+                exporter_name = str(host_file[x]['exporter_name'])
                 try:
                     print('\nCONNECTING TO HOST',x+1,'of',host_len,'; IP: ',host_ip)
                     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
