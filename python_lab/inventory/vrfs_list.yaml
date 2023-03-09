@@ -1,0 +1,42 @@
+vrf:
+
+#DC VRFs section
+  dc:
+
+    - name: vrf_1
+      interfaces:
+        - 'vlan 10'
+
+    - name: vrf_2
+      interfaces:
+        - 'vlan 11'
+
+    - name: vrf_3
+      interfaces:
+        - 'vlan 12'
+        - 'vlan 13'
+
+    - name: vrf-14
+      interfaces:
+        - vlan 15
+        - vlan 16
+        - vlan 17
+        
+#DMZ VRFs section
+  dmz:
+
+    - name: vrf_11-new
+      interfaces:
+        - 'vlan 100'
+        - vlan 50
+
+    - name: vrf_12
+      interfaces:
+        - 'vlan 11'
+
+    - name: vrf-13
+      interfaces:
+        - 'vlan 12'
+        - 'vlan 13'
+
+
