@@ -14,12 +14,12 @@ import re
 
 time= time.strftime("%Y%m%d_%H%M%S")
 
-username = input("Please provide username only: ")
-password = getpass.getpass(prompt='Please provide your radius password: ')
-apic = input("Please provide IP Address of apic: ")
+username = 'admin' #input("Please provide username only: ")
+password = 'cisco123' #getpass.getpass(prompt='Please provide your radius password: ')
+apic = '192.168.254.100' #input("Please provide IP Address of apic: ")
 tenant_name = input('Please specify tennat name: ')
 vrf_name = input('Please specify VRF Name: ')
-
+bd_name = input('Please provide BD Name (Optional) :')
 def login_to_apic():
     print('\n####Generating Token for '+ apic +' apic +:\n')
     login_url = "https://" + apic + "/api/aaaLogin.json"
@@ -78,11 +78,22 @@ with open(r'inventory\aci_vrf_list.yaml', "r") as vrf:
             vrf_len =  len(vrf_load['tenant'][x]['vrf'])
             for y in range(0, vrf_len):
                 if vrf_name == vrf_load['tenant'][x]['vrf'][y]['name']:
-                    for bd_name in vrf_load['tenant'][x]['vrf'][y]['interfaces']:
-                        try:
-                            login_to_apic()
-                            aci_bd_config()
-                        except:
-                            print('Connection to host ' + apic + ' failed')
+                    bd_len = len(vrf_load['tenant'][x]['vrf'][y]['interfaces'])
+                    if bd_name:
+                        for z in range(0, bd_len):
+                            if bd_name == vrf_load['tenant'][x]['vrf'][y]['interfaces'][z]:
+                                try:
+                                    login_to_apic()
+                                    aci_bd_config()
+                                except:
+                                    print('Connection to host ' + apic + ' failed')
+
+                    else:
+                        for bd_name in vrf_load['tenant'][x]['vrf'][y]['interfaces']:
+                            try:
+                                login_to_apic()
+                                aci_bd_config()
+                            except:
+                                print('Connection to host ' + apic + ' failed')
 print('End Time :',time)
 quit()
