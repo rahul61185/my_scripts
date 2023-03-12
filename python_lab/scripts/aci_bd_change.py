@@ -14,9 +14,9 @@ import re
 
 time= time.strftime("%Y%m%d_%H%M%S")
 
-username = 'admin' #input("Please provide username only: ")
-password = 'cisco123' #getpass.getpass(prompt='Please provide your radius password: ')
-apic = '192.168.254.100' #input("Please provide IP Address of apic: ")
+username = input("Please provide username only: ")
+password = getpass.getpass(prompt='Please provide your radius password: ')
+apic = input("Please provide IP Address of apic: ")
 tenant_name = input('Please specify tennat name: ')
 vrf_name = input('Please specify VRF Name: ')
 bd_name = input('Please provide BD Name (Optional) :')
