@@ -1,0 +1,24 @@
+tenant:
+  - name: enbd-dc
+    vrf:
+      - name: dc_vrf
+        interfaces:
+          - test_bd_1
+          - test_dc_bd_2
+      - name: dmz_vrf
+        interfaces:
+          - dmz_test_bd_1
+       
+#DMZ VRFs section
+  - name: dmz_tenant
+    vrf:
+      - name: dmz_vrf_1
+        interfaces:
+          - dmz_test_bd_3
+      
+      - name: dmz_vrf_2
+        interfaces:
+          - test_dmz_bd_2
+          - test_dmz_bd_1
+
+
