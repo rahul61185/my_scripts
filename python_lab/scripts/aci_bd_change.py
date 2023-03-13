@@ -57,7 +57,7 @@ def aci_bd_config():
             }
         }
     })
-    print('Posting following config to APIC...\n ')
+    
     print(payload,'\n')
     headers = {'Cache-Control': "no-cache"}
     cookies = {
@@ -70,6 +70,8 @@ def aci_bd_config():
 
 print('Start Time: ',time)
 
+login_to_apic()
+print('Posting following config to APIC...\n ')
 with open(r'inventory\aci_vrf_list.yaml', "r") as vrf:
     vrf_load = safe_load(vrf)
     tenant_len = len(vrf_load['tenant'])
@@ -83,7 +85,6 @@ with open(r'inventory\aci_vrf_list.yaml', "r") as vrf:
                         for z in range(0, bd_len):
                             if bd_name == vrf_load['tenant'][x]['vrf'][y]['interfaces'][z]:
                                 try:
-                                    login_to_apic()
                                     aci_bd_config()
                                 except:
                                     print('Connection to host ' + apic + ' failed')
@@ -91,7 +92,6 @@ with open(r'inventory\aci_vrf_list.yaml', "r") as vrf:
                     else:
                         for bd_name in vrf_load['tenant'][x]['vrf'][y]['interfaces']:
                             try:
-                                login_to_apic()
                                 aci_bd_config()
                             except:
                                 print('Connection to host ' + apic + ' failed')
