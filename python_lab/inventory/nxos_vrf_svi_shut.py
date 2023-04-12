@@ -62,9 +62,10 @@ for item in ssh_args_1:
 
             vrf_split = vrf.split(',')
             for item in vrf_split:
-                temp_vrf_list.append(item)
+                temp_vrf_list.append(item.strip())
 
             for temp_vrf in temp_vrf_list:
+                print(temp_vrf)
                 for item in vrf_dict:
                     if item['vrf_name'] == temp_vrf:
                         for intf_name in item['interfaces']:
